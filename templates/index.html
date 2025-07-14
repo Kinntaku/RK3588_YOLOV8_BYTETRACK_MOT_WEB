@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Stream Test</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <div id="fps">FPS: Loading</div>
+        
+        <div class="button-group">
+            <button id="trackingToggle" class="toggle-button tracking-disabled">Tracking Disabled</button>
+            <button id="focusToggle" class="toggle-button focus-disabled">Focus Disabled</button>
+        </div>
+
+        <label for="cameraSelect">Select Camera:</label>
+        <select id="cameraSelect"></select>
+        
+        <div class="video-container">
+            <div class="video-wrapper">
+                <h3>Original Stream</h3>
+                <video id="video" autoplay playsinline></video>
+            </div>
+            <div class="video-wrapper">
+                <h3>Stream out</h3>
+                <canvas id="processed_canvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="data-container">
+            <div class="data-box" id="currentData">
+                <h3>当前 ID 数据</h3>
+                <ul id="idList"></ul>  <!-- 这里不放默认内容，以防刷新时影响 -->
+            </div>
+            <div class="data-box" id="trackData">
+                <h3>用户 Track 数据</h3>
+                <p>暂无数据</p> <!-- 页面初始化时为空 -->
+            </div>
+        </div>
+
+        
+        <div id="forms-container"></div> <!-- 这里会动态生成表单 -->
+        
+        <canvas id="canvas" style="display: none;"></canvas>
+    </div>
+
+     
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>
