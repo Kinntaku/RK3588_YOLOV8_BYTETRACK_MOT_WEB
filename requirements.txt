@@ -1,0 +1,8 @@
+opencv-python
+numpy==1.23.5
+loguru
+flask
+flask-socketio
+rknnpool
+rknnlite
+byte-tracker
