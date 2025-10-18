@@ -1,125 +1,455 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: black;
-    color: white;
+
+html, body {
+    height: 100%;
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    overflow: hidden;
+    background-color: #000000;
+    color: #ffffff;
+}
+body {
     text-align: center;
 }
-
 .container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    max-width: 1200px;
+    height: 100%;
+    gap: 0;
+    max-width: 100%;
     margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #000000;
 }
-
-.video-container {
+.left-panel {
+    flex: 3;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 0;
+    box-sizing: border-box;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid #333333;
+    background-color: #111111;
+}
+.right-panel {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-sizing: border-box;
+    height: 100%;
+    border: 1px solid #333333;
+    background-color: #111111;
+}
+.combined-box {
+    flex: 1; 
+    overflow: auto;
+    height: 100%; 
+    position: relative; 
+    border: 1px solid #333333;
+    background-color: #222222;
+}
+.categories-container {
+    display: flex;
+    width: max-content;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.category-box {
+    width: 400px;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-sizing: border-box;
+    height: 100%;
+    flex-shrink: 0;
+    border: 1px solid #333333;
+    background-color: #222222;
+}
+.current-ids-section {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #333333;
+    background-color: #222222;
+}
+.added-ids-section {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #333333;
+    background-color: #222222;
+}
+.add-section {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.track-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.bottom-buttons {
+    flex-shrink: 0;
+    padding: 5px 0;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+.video-section {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
     width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #333333;
+    background-color: #111111;
 }
-
-@media (min-width: 768px) {
-    .video-container {
-        flex-direction: row;
-        justify-content: center;
-    }
-    
-    .video-wrapper {
-        flex: 1;
-        max-width: 50%;
-    }
-}
-
 .video-wrapper {
     position: relative;
     width: 100%;
+    max-width: 100%;
+    border: 1px solid #333333;
+    background-color: #000000;
 }
-
 video, #processed_canvas {
     width: 100%;
     height: auto;
-    max-height: 60vh;
-    border: 2px solid #333;
-    border-radius: 8px;
-    background-color: #111;
+    max-height: 100%;
 }
-
-#cameraSelect {
-    padding: 10px;
-    border-radius: 5px;
-    background-color: #333;
-    color: white;
-    border: none;
-    font-size: 16px;
-    width: 100%;
-    max-width: 400px;
+.control-section {
+    display: flex;
+    gap: 20px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    border: 1px solid #333333;
+    background-color: #111111;
 }
-
+.buttons-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    gap: 10px;
+    box-sizing: border-box;
+}
+#fps, #cameraSelect, #drawToggle, #trackingToggle, #focusToggle {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 20px;
+    box-sizing: border-box;
+}
 #fps {
     font-size: 20px;
-    margin-bottom: 15px;
-    color: #4CAF50;
+    color: #ffffff;
 }
-
-h1 {
+.performance-column {
+    flex: 2;
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+}
+.data-box {
+    padding: 15px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    min-height: 0;
+    box-sizing: border-box;
+    border: 1px solid #333333;
+    background-color: #222222;
+}
+.performance-content {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+}
+.cpu-column, .npu-column {
+    flex: 1;
+}
+.cpu-column h4, .npu-column h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #ffffff;
+}
+.usage-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+.usage-bar span {
+    min-width: 80px;
+    font-size: 14px;
+    color: #ffffff;
+}
+.usage-bar progress {
+    flex: 1;
+    height: 10px;
+}
+.right-panel .data-box {
+    flex: 1;
+    overflow-y: auto;
+}
+.current-ids, #trackEditor {
+    flex: 1;
+    overflow-y: auto;
+}
+.current-category, .tracked-category {
+    margin-bottom: 10px;
+}
+.current-category h5, .tracked-category h5 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: #ffffff;
+}
+.track-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.item {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    gap: 5px;
+    height: 30px;
+    border: 1px solid #333333;
+    background-color: #333333;
+    color: #ffffff;
+}
+.item span {
+    font-size: 16px;
+}
+#trackEditor {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+.track-category {
     margin-bottom: 20px;
 }
-
-label {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 18px;
+.track-category h4 {
+    margin: 0 0 10px 0;
+    color: #ffffff;
+}
+.bottom-buttons input {
+    padding: 5px 10px;
+    border: 1px solid #333333;
+    height: 30px;
+    flex: 1;
+    background-color: #333333;
+    color: #ffffff;
 }
 
-.data-container {
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
-    margin-top: 20px;
-}
-
-.data-box {
-    width: 45%;
-    padding: 15px;
-    background-color: #222;
-    border-radius: 8px;
-    text-align: left;
-}
-
-.button-group {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin: 10px 0;
-}
-
-.toggle-button {
+/* 按钮状态颜色 */
+.control-button {
     padding: 10px 20px;
-    font-size: 16px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
     transition: background-color 0.3s;
-    color: white;
+}
+
+.draw-enabled {
+    background-color: #4CAF50; /* 绿色表示Draw On */
+    color: #ffffff;
+}
+
+.draw-disabled {
+    background-color: #666666; /* 灰色表示Draw Off */
+    color: #ffffff;
 }
 
 .tracking-enabled {
-    background-color: #4CAF50;
+    background-color: #2196F3; /* 蓝色表示Tracking On */
+    color: #ffffff;
 }
 
 .tracking-disabled {
-    background-color: #f44336;
+    background-color: #666666; /* 灰色表示Tracking Off */
+    color: #ffffff;
 }
 
 .focus-enabled {
-    background-color: #2196F3;
+    background-color: #FF9800; /* 橙色表示Focus On */
+    color: #ffffff;
 }
 
-.focus-disabled {
-    background-color: #ff9800;
+/* 摄像头选择框样式 */
+#cameraSelect {
+    padding: 8px 12px;
+    border: 1px solid #333333;
+    border-radius: 5px;
+    background-color: #333333;
+    color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+#cameraSelect:focus {
+    outline: none;
+    border-color: #555555;
+    background-color: #444444;
+}
+
+#cameraSelect option {
+    background-color: #333333;
+    color: #ffffff;
+    padding: 5px;
+}
+
+/* 所有按钮通用样式 */
+button {
+    padding: 8px 12px;
+    border: 1px solid #333333;
+    border-radius: 5px;
+    background-color: #333333;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* 通用按钮悬停效果（不包括有特定颜色的按钮） */
+button:not([onclick*="addTrackId"]):not([onclick*="removeTrackId"]):not(.clear-all):not(.control-button):hover {
+    background-color: #444444;
+    border-color: #555555;
+}
+
+button:active {
+    background-color: #222222;
+}
+
+/* +号按钮样式 */
+button[onclick*="addTrackId"] {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+    font-weight: bold;
+    min-width: 35px;
+}
+
+button[onclick*="addTrackId"]:hover {
+    background-color: #45a049;
+    border-color: #45a049;
+}
+
+/* x号按钮样式 */
+button[onclick*="removeTrackId"] {
+    background-color: #f44336;
+    border-color: #f44336;
+    font-weight: bold;
+    min-width: 25px;
+    padding: 2px 6px;
+}
+
+button[onclick*="removeTrackId"]:hover {
+    background-color: #da190b;
+    border-color: #da190b;
+}
+
+/* 清空所有按钮样式 */
+.clear-all {
+    background-color: #FF9800;
+    border-color: #FF9800;
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+.clear-all:hover {
+    background-color: #e68900;
+    border-color: #e68900;
+}
+
+/* 输入框样式 */
+input[type="number"] {
+    padding: 6px 10px;
+    border: 1px solid #333333;
+    border-radius: 5px;
+    background-color: #333333;
+    color: #ffffff;
+    font-size: 14px;
+    min-width: 80px;
+}
+
+input[type="number"]:focus {
+    outline: none;
+    border-color: #555555;
+    background-color: #444444;
+}
+
+input[type="number"]::placeholder {
+    color: #cccccc;
+}
+
+/* 滚动框样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #222222;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555555;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666666;
+}
+
+::-webkit-scrollbar-corner {
+    background: #222222;
+}
+
+/* 标题样式 */
+h3, h4, h5 {
+    color: #ffffff;
+    margin: 0 0 10px 0;
+}
+
+h3 {
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* 进度条样式 */
+progress {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #333333;
+}
+
+progress::-webkit-progress-bar {
+    background-color: #333333;
+    border-radius: 5px;
+}
+
+progress::-webkit-progress-value {
+    background-color: #4CAF50;
+    border-radius: 5px;
+}
+
+progress::-moz-progress-bar {
+    background-color: #4CAF50;
+    border-radius: 5px;
 }

@@ -1,3 +1,4 @@
+
 import cv2
 import numpy as np
 from loguru import logger
@@ -11,6 +12,8 @@ from flask_socketio import SocketIO,disconnect
 from byte_tracker.tracker.byte_tracker import BYTETracker
 from rknnpool import rknnPoolExecutor
 from config import *
+import psutil
+import threading
 
 last_frame_time = 0 #用于计算帧率 
 
@@ -27,6 +30,7 @@ track_history = {
 selected_device_id = None  # 记录当前选择的摄像头
 
 frame_count = 0
+stats_start_frame = 0
 
 
 def prepare_data_and_update_trace(
@@ -135,6 +139,27 @@ pool = rknnPoolExecutor(rknnModel=model, TPEs=3, func=Process_Yolo)
 
 
 
+def get_usage():
+    cpu_percents = psutil.cpu_percent(interval=0.1, percpu=True)
+    selected_cpus = [cpu_percents[4], cpu_percents[5], cpu_percents[6], cpu_percents[7]]
+    try:
+        with open('/sys/kernel/debug/rknpu/load', 'r') as f:
+            npu_load = f.read().strip()
+    except Exception as e:
+        npu_load = f"NPU load unavailable: {e}"
+    return selected_cpus, npu_load
+
+def send_stats():
+    global stats_start_frame
+    while True:
+        time.sleep(2)
+        cpu, npu = get_usage()
+        fps = (frame_count - stats_start_frame) / 2.0
+        logger.info(f"Stats: FPS={fps:.1f}, CPU={cpu}, NPU={npu}")
+        socketio.emit('stats', {'cpu': cpu, 'npu': npu, 'fps': fps})
+        stats_start_frame = frame_count
+
+
 # **处理 WebRTC 传输的视频帧**
 @socketio.on('frame')
 def receive_frame(data):
@@ -224,6 +249,10 @@ def single_client():
     
     
 def main():
+    global stats_start_frame
+    stats_start_frame = frame_count
+    # Start stats monitoring thread
+    threading.Thread(target=send_stats, daemon=True).start()
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
 
 if __name__ == "__main__":

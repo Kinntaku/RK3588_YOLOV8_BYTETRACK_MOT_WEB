@@ -1,7 +1,5 @@
 let pendingFrames = 0;
 let frameCount = 0;
-let lastFpsTime = performance.now();
-let currentFps = 0;
 
 
 const app = {
@@ -16,73 +14,83 @@ const app = {
 
     },
 
-    // 获取目标类别并创建表单
+    // 获取目标类别并创建可视化编辑器
     fetchTargetClasses: function() {
         fetch('/get_target_classes')
         .then(response => response.json())
         .then(data => {
-            const container = document.getElementById("forms-container");
+            const container = document.getElementById("categoriesContainer");
             container.innerHTML = "";
-
             data.forEach(category => {
                 app.trackData[category] = []; // 初始化字典
-
-                const form = document.createElement("form");
-
-                const input = document.createElement("input");
-                input.type = "text";
-                input.name = category;
-                input.placeholder = `输入 ${category} ID`;
-
-                const button = document.createElement("button");
-                button.type = "submit";
-                button.textContent = `提交 ${category}`;
-
-                form.appendChild(input);
-                form.appendChild(button);
-
-                form.addEventListener("submit", function (event) {
-                    event.preventDefault();
-                    app.updateTrackIds(category, input.value);
-                    input.value = ""; // 清空输入框
+                const categoryBox = document.createElement("div");
+                categoryBox.className = "category-box";
+                categoryBox.innerHTML = `
+                    <div class="current-ids-section">
+                        <h5>${category}</h5>
+                        <div class="track-items" id="current-${category}"></div>
+                    </div>
+                    <div class="added-ids-section">
+                        <div class="track-items" id="items-${category}"></div>
+                    </div>
+                    <div class="add-section">
+                        <div class="bottom-buttons">
+                            <input type="number" id="input-${category}" placeholder="ID">
+                            <button onclick="app.addTrackId('${category}')">+</button>
+                            <button class="clear-all" onclick="app.clearTrackIds('${category}')">清空所有</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(categoryBox);
+                app.updateTrackDisplay(category);
+                // 添加回车事件
+                const input = document.getElementById(`input-${category}`);
+                input.addEventListener("keypress", function(event) {
+                    if (event.key === "Enter") {
+                        app.addTrackId(category);
+                    }
                 });
-
-                container.appendChild(form);
             });
-
-            app.updateTrackDisplay(); // 初始更新显示
         })
         .catch(error => console.error('获取类别失败:', error));
     },
 
-    // 更新 ID 数据
-updateTrackIds: function(category, value) {
-    const ids = value.split(" ")
-        .map(id => id.trim())
-        .filter(id => id) // 去掉空值
-        .map(id => parseInt(id, 10)); // 转换为数字
-
-    // **覆盖更新，而不是追加**
-    app.trackData[category] = ids;
-
-    app.updateTrackDisplay(); // 更新实时显示
-},
-
-
-    // 实时更新页面显示
-    updateTrackDisplay: function() {
-        const trackContainer = document.getElementById("trackData");
-        trackContainer.innerHTML = "<h3>用户 Track 数据</h3>";
-
-        const list = document.createElement("ul");
-
-        Object.entries(app.trackData).forEach(([category, ids]) => {
-            const listItem = document.createElement("li");
-            listItem.textContent = `${category}: [${ids.join(", ")}]`;
-            list.appendChild(listItem);
+    // 更新指定类别的Track显示
+    updateTrackDisplay: function(category) {
+        const itemsDiv = document.getElementById(`items-${category}`);
+        itemsDiv.innerHTML = "";
+        app.trackData[category].forEach((id, index) => {
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "item";
+            itemDiv.innerHTML = `
+                <span>${id}</span>
+                <button onclick="app.removeTrackId('${category}', ${index})">×</button>
+            `;
+            itemsDiv.appendChild(itemDiv);
         });
+    },
 
-        trackContainer.appendChild(list);
+    // 添加Track ID
+    addTrackId: function(category) {
+        const input = document.getElementById(`input-${category}`);
+        const value = parseInt(input.value.trim());
+        if (!isNaN(value) && !app.trackData[category].includes(value)) {
+            app.trackData[category].push(value);
+            app.updateTrackDisplay(category);
+            input.value = "";
+        }
+    },
+
+    // 删除Track ID
+    removeTrackId: function(category, index) {
+        app.trackData[category].splice(index, 1);
+        app.updateTrackDisplay(category);
+    },
+
+    // 清空所有Track ID
+    clearTrackIds: function(category) {
+        app.trackData[category] = [];
+        app.updateTrackDisplay(category);
     }
 };
 
@@ -196,8 +204,8 @@ const socket = {
                 let idData = {}; // 存储类别对应的 ID 数组
                 let visibleBoxes = []; // 记录所有需要保留的框
 
-                // **只有当 ui.focus_flag === 1 时，填充黑色遮罩**
-                if (ui.focus_flag === 1) {
+                // **只有当 ui.draw_flag === 1 和 ui.focus_flag === 1 时，才填充黑色遮罩**
+                if (ui.draw_flag === 1 && ui.focus_flag === 1) {
                     ctx2.fillStyle = "rgba(0, 0, 0, 0.7)";
                     ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
                 }
@@ -225,23 +233,26 @@ const socket = {
                             // 记录需要保留的区域
                             visibleBoxes.push({ x, y, width, height });
 
-                            // **在 canvas1 上绘制框、文字、轨迹**
-                            ctx1.strokeStyle = category === "person" ? "red" : "green";
-                            ctx1.lineWidth = 2;
-                            ctx1.strokeRect(x, y, width, height);
+                            // **只有当 draw_flag === 1 时，才绘制框、文字、轨迹**
+                            if (ui.draw_flag === 1) {
+                                // **在 canvas1 上绘制框、文字、轨迹**
+                                ctx1.strokeStyle = category === "person" ? "red" : "green";
+                                ctx1.lineWidth = 2;
+                                ctx1.strokeRect(x, y, width, height);
 
-                            let text = `${category} ID: ${id}, Score: ${(confidence * 100).toFixed(1)}%`;
-                            ctx1.fillStyle = "yellow";
-                            ctx1.fillText(text, x, y - 10);
+                                let text = `${category} ID: ${id}, Score: ${(confidence * 100).toFixed(2)}%`;
+                                ctx1.fillStyle = "yellow";
+                                ctx1.fillText(text, x, y - 10);
 
-                            if (Array.isArray(trajectory) && trajectory.length > 1) {
-                                ctx1.strokeStyle = "blue"; // 轨迹颜色
-                                ctx1.lineJoin = "round"; // 轨迹平滑
-                                ctx1.beginPath();
-                                trajectory.forEach((point, index) => {
-                                    index === 0 ? ctx1.moveTo(point[0], point[1]) : ctx1.lineTo(point[0], point[1]);
-                                });
-                                ctx1.stroke();
+                                if (Array.isArray(trajectory) && trajectory.length > 1) {
+                                    ctx1.strokeStyle = "blue"; // 轨迹颜色
+                                    ctx1.lineJoin = "round"; // 轨迹平滑
+                                    ctx1.beginPath();
+                                    trajectory.forEach((point, index) => {
+                                        index === 0 ? ctx1.moveTo(point[0], point[1]) : ctx1.lineTo(point[0], point[1]);
+                                    });
+                                    ctx1.stroke();
+                                }
                             }
                         } else {
                             console.error(`数据格式错误:`, track);
@@ -249,8 +260,8 @@ const socket = {
                     });
                 });
 
-                // **如果 focus_flag === 1，擦除遮罩层中的框区域**
-                if (ui.focus_flag === 1) {
+                // **如果 draw_flag === 1 和 focus_flag === 1，擦除遮罩层中的框区域**
+                if (ui.draw_flag === 1 && ui.focus_flag === 1) {
                     visibleBoxes.forEach(({ x, y, width, height }) => {
                         ctx2.clearRect(x, y, width, height); // 清空遮罩层中框的位置
                     });
@@ -261,26 +272,66 @@ const socket = {
 
                 ctx.drawImage(canvas1, 0, 0); // 最后绘制框、文字、轨迹
 
+                // 获取所有类别
+                const allCategories = new Set([...Object.keys(idData), ...Object.keys(app.trackData)]);
+                const categories = Array.from(allCategories).sort();
+
                 // **更新 ID 列表（始终显示所有 ID）**
-                let idList = document.getElementById("idList");
-                idList.innerHTML = "";
-                Object.entries(idData).forEach(([category, ids]) => {
-                    let listItem = document.createElement("li");
-                    listItem.textContent = `${category}: [${ids.join(", ")}]`;
-                    idList.appendChild(listItem);
+                categories.forEach(category => {
+                    const ids = idData[category] || [];
+                    const itemsDiv = document.getElementById(`current-${category}`);
+                    if (itemsDiv) {
+                        itemsDiv.innerHTML = "";
+                        ids.forEach(id => {
+                            const itemDiv = document.createElement("div");
+                            itemDiv.className = "item";
+                            itemDiv.innerHTML = `<span>${id}</span>`;
+                            itemsDiv.appendChild(itemDiv);
+                        });
+                    }
                 });
             };
 
             img.src = data.image; // 加载图像
 
             frameCount++;
-            if (frameCount % 40 === 0) {
-                const now = performance.now();
-                currentFps = Math.round(40000 / (now - lastFpsTime)); // 40帧/(毫秒差/1000)
-                lastFpsTime = now;
-                document.getElementById("fps").innerText = `FPS: ${currentFps}`;
-            }
             pendingFrames = Math.max(0, pendingFrames - 1); // 新增5：确保不减到负数
+        });
+
+        this.io.on("stats", function (data) {
+            console.log("Received stats:", data);
+            document.getElementById("fps").innerText = `FPS: ${data.fps.toFixed(2)}`;
+            
+            // CPU usage with progress bars
+            const cpuDiv = document.getElementById('cpuUsage');
+            cpuDiv.innerHTML = '<h4>CPU</h4>';
+            data.cpu.forEach((percent, index) => {
+                const coreNum = 4 + index;
+                const barDiv = document.createElement('div');
+                barDiv.className = 'usage-bar';
+                barDiv.innerHTML = `
+                    <span>Core ${coreNum}: ${percent.toFixed(2)}%</span>
+                    <progress value="${percent}" max="100"></progress>
+                `;
+                cpuDiv.appendChild(barDiv);
+            });
+            
+            // NPU usage with progress bars
+            const npuDiv = document.getElementById('npuUsage');
+            npuDiv.innerHTML = '<h4>NPU</h4>';
+            const npuStr = data.npu.replace('NPU load: ', '');
+            const cores = npuStr.split(', ');
+            cores.forEach(core => {
+                const [label, percentStr] = core.split(': ');
+                const percent = parseFloat(percentStr);
+                const barDiv = document.createElement('div');
+                barDiv.className = 'usage-bar';
+                barDiv.innerHTML = `
+                    <span>${label}: ${percent.toFixed(2)}%</span>
+                    <progress value="${percent}" max="100"></progress>
+                `;
+                npuDiv.appendChild(barDiv);
+            });
         });
 
     },
@@ -294,48 +345,66 @@ const socket = {
 
 
 const ui = {
+    draw_flag: 1,
     tracking_flag: 0,
     focus_flag: 0,
     
     init: function() {
+        this.drawButton = document.getElementById("drawToggle");
         this.trackingButton = document.getElementById("trackingToggle");
         this.focusButton = document.getElementById("focusToggle");
         
         this.updateButtonStates();
         
+        this.drawButton.addEventListener("click", () => this.toggleDraw());
         this.trackingButton.addEventListener("click", () => this.toggleTracking());
         this.focusButton.addEventListener("click", () => this.toggleFocus());
+    },
+    
+    toggleDraw: function() {
+        this.draw_flag = this.draw_flag === 0 ? 1 : 0;
+        this.updateButtonStates();
     },
     
     toggleTracking: function() {
         this.tracking_flag = this.tracking_flag === 0 ? 1 : 0;
         this.updateButtonStates();
-        socket.emit("update_flags", { 
-            tracking_flag: this.tracking_flag,
-            focus_flag: this.focus_flag
-        });
     },
     
     toggleFocus: function() {
         this.focus_flag = this.focus_flag === 0 ? 1 : 0;
         this.updateButtonStates();
-        socket.emit("update_flags", { 
-            tracking_flag: this.tracking_flag,
-            focus_flag: this.focus_flag
-        });
     },
     
     updateButtonStates: function() {
+        // 更新绘制按钮
+        this.drawButton.textContent = this.draw_flag === 1 ? "Draw On" : "Draw Off";
+        if (this.draw_flag === 1) {
+            this.drawButton.classList.remove("draw-disabled");
+            this.drawButton.classList.add("draw-enabled");
+        } else {
+            this.drawButton.classList.remove("draw-enabled");
+            this.drawButton.classList.add("draw-disabled");
+        }
+        
         // 更新跟踪按钮
-        this.trackingButton.textContent = this.tracking_flag === 1 ? 
-            "Tracking Enabled" : "Tracking Disabled";
-        this.trackingButton.className = this.tracking_flag === 1 ? 
-            "toggle-button tracking-enabled" : "toggle-button tracking-disabled";
+        this.trackingButton.textContent = this.tracking_flag === 1 ? "Tracking On" : "Tracking Off";
+        if (this.tracking_flag === 1) {
+            this.trackingButton.classList.remove("tracking-disabled");
+            this.trackingButton.classList.add("tracking-enabled");
+        } else {
+            this.trackingButton.classList.remove("tracking-enabled");
+            this.trackingButton.classList.add("tracking-disabled");
+        }
         
         // 更新聚焦按钮
-        this.focusButton.textContent = this.focus_flag === 1 ? 
-            "Focus Enabled" : "Focus Disabled";
-        this.focusButton.className = this.focus_flag === 1 ? 
-            "toggle-button focus-enabled" : "toggle-button focus-disabled";
+        this.focusButton.textContent = this.focus_flag === 1 ? "Focus On" : "Focus Off";
+        if (this.focus_flag === 1) {
+            this.focusButton.classList.remove("focus-disabled");
+            this.focusButton.classList.add("focus-enabled");
+        } else {
+            this.focusButton.classList.remove("focus-enabled");
+            this.focusButton.classList.add("focus-disabled");
+        }
     }
 };

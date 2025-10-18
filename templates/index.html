@@ -11,42 +11,43 @@
 </head>
 <body>
     <div class="container">
-        <div id="fps">FPS: Loading</div>
-        
-        <div class="button-group">
-            <button id="trackingToggle" class="toggle-button tracking-disabled">Tracking Disabled</button>
-            <button id="focusToggle" class="toggle-button focus-disabled">Focus Disabled</button>
-        </div>
-
-        <label for="cameraSelect">Select Camera:</label>
-        <select id="cameraSelect"></select>
-        
-        <div class="video-container">
-            <div class="video-wrapper">
-                <h3>Original Stream</h3>
-                <video id="video" autoplay playsinline></video>
+        <div class="left-panel">
+            <div class="video-section">
+                <div class="video-wrapper">
+                    <h3>Stream</h3>
+                    <canvas id="processed_canvas"></canvas>
+                </div>
             </div>
-            <div class="video-wrapper">
-                <h3>Stream out</h3>
-                <canvas id="processed_canvas"></canvas>
-            </div>
-        </div>
-        
-        <div class="data-container">
-            <div class="data-box" id="currentData">
-                <h3>当前 ID 数据</h3>
-                <ul id="idList"></ul>  <!-- 这里不放默认内容，以防刷新时影响 -->
-            </div>
-            <div class="data-box" id="trackData">
-                <h3>用户 Track 数据</h3>
-                <p>暂无数据</p> <!-- 页面初始化时为空 -->
+            <div class="control-section">
+                <div class="buttons-column">
+                    <div id="fps">FPS: Loading</div>
+                    <select id="cameraSelect"></select>
+                    <button id="drawToggle" class="control-button draw-enabled">Draw On</button>
+                    <button id="trackingToggle" class="control-button tracking-disabled">Tracking Off</button>
+                    <button id="focusToggle" class="control-button focus-disabled">Focus Off</button>
+                </div>
+                <div class="performance-column">
+                    <div class="data-box" id="usageData">
+                        <div class="performance-content">
+                            <div class="cpu-column">
+                                <div id="cpuUsage"></div>
+                            </div>
+                            <div class="npu-column">
+                                <div id="npuUsage"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        
-        <div id="forms-container"></div> <!-- 这里会动态生成表单 -->
+        <div class="right-panel">
+            <div class="combined-box">
+                <div class="categories-container" id="categoriesContainer"></div>
+            </div>
+        </div>
         
         <canvas id="canvas" style="display: none;"></canvas>
+        <video id="video" autoplay playsinline style="display: none;"></video>
     </div>
 
      
