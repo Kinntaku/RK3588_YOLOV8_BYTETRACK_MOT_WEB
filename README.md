@@ -50,21 +50,6 @@ A MOT project using YOLOV8 as the detection head and bytetrack as the tracker, d
 
 - 在同一局域网下使用浏览器访问开发板的5000端口（若无法访问摄像头，chrome用户可在chrome://flags/#unsafely-treat-insecure-origin-as-secure白名单中添加服务器网址再允许摄像头权限）
 
-=======
-- config.py
-	OBJ_THRESH, NMS_THRESH：置信度，nms阈值
-	IMG_SIZE：模型的输入大小
-	TARGET_CLASSES：想要追踪的类别（以集合形式存储），其类别必须包在CLASSES中
-	CLASSES：模型所支持的所有类别
-	model：想使用的模型
-- 运行方法
-	创建新的conda环境，python=3.10
-	安装 `environment` 文件夹下 `rknn_toolkit_lite2-2.0.0b0-cp310-cp310-linux_aarch64.whl` 包
-	（`rknn_toolkit2-2.0.0b0+9bab5682-cp310-cp310-linux_x86_64.whl` 包为yolo模型转换rknn时使用的包）
-	将 `librknnrt.so` 复制（覆盖）到 `/usr/lib/` 目录下
-	执行 `pip install -r requirements.txt`
-	运行 `python main_cam.py`
-	在同一局域网下使用浏览器访问开发板的5000端口
 
 ## 训练日志
 
